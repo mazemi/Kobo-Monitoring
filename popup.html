@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>KoBo Monitor</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="app-header">
+    <h3>KoBo Monitor</h3>
+    <button id="settingsBtn" class="icon-btn" title="Settings">Settings</button>
+</div>
+
+<!-- Settings Panel (hidden by default) -->
+<div id="settingsPanel" class="settings-panel hidden">
+    <div class="settings-header">
+        <span>Settings</span>
+        <button id="closeSettings" class="close-circle" title="Close">&#x2715;</button>
+    </div>
+    <div class="settings-content">
+        <div class="settings-group">
+            <label for="baseUrl">KoBo Base URL</label>
+            <input type="text" id="baseUrl" placeholder="https://kobo.impact-initiatives.org" value="https://kobo.impact-initiatives.org">
+        </div>
+        <div class="settings-group">
+            <label for="token">API Token</label>
+            <input type="password" id="token" placeholder="Paste KoBo API Token" value="">
+        </div>
+        <div class="settings-actions">
+            <button id="saveToken" class="primary-btn">Save Settings</button>
+            <button id="logoutBtn" class="secondary-btn">Log Out</button>
+        </div>
+        <span id="tokenStatus" class="status-message"></span>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div id="mainContent">
+    <!-- Tabs for Projects (now includes + tab) -->
+    <div id="tabsContainer" class="tabs-container"></div>
+
+    <!-- Project Selector Modal (hidden by default) -->
+    <div id="projectSelector" class="selector-modal hidden">
+        <div class="selector-header">
+            <span>Select Projects to Monitor</span>
+            <button id="closeSelector" class="close-circle" title="Close">&#x2715;</button>
+        </div>
+        <div class="selector-content">
+            <div class="refresh-section">
+                <button id="refreshProjects" class="small-btn">Refresh List</button>
+            </div>
+            <div class="loading-spinner" id="projectSpinner" style="display: none;"></div>
+            <select id="projectSelect" multiple></select>
+            <div class="selector-actions">
+                <button id="saveProjectSelection" class="primary-btn">Add Selected Projects</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div id="results"></div>
+</div>
+
+<!-- Author Footer -->
+<div class="author-footer">
+    <div class="author-info">
+        <span class="author-name">REACH Initiatives (Afghaniatan mission)</span>
+        <span class="author-email">mohammad.azemi@reach-initiative.org</span>
+    </div>
+    <div class="app-version">v1.3</div>
+</div>
+
+<script src="popup.js"></script>
+</body>
+</html>
