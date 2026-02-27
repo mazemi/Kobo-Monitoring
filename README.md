@@ -5,6 +5,8 @@ Track daily submissions, view the last 7 days submissions.
 
 ---
 
+
+![assets](https://github.com/mazemi/assets/blob/main/kobomonitoring.PNG)
 ## ✨ Features
 
 - **Multi-Project Monitoring**  
