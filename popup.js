@@ -1,7 +1,7 @@
 // Default BASE_URL - will be overridden by stored value
 let BASE_URL = "https://kobo.impact-initiatives.org/api/v2";
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache for projects
-const DATA_CACHE_DURATION = 60 * 60 * 1000; // 1 hour cache for submission data
+const CACHE_DURATION = 20 * 60 * 1000; // 5 minutes cache for projects
+const DATA_CACHE_DURATION = 5 * 60 * 1000; // 1 hour cache for submission data
 
 document.addEventListener("DOMContentLoaded", () => {
     loadSettings();
