@@ -1,12 +1,11 @@
 // Default BASE_URL - will be overridden by stored value
 let BASE_URL = "https://kobo.impact-initiatives.org/api/v2";
-const CACHE_DURATION = 20 * 60 * 1000; // 5 minutes cache for projects
-const DATA_CACHE_DURATION = 5 * 60 * 1000; // 1 hour cache for submission data
+const CACHE_DURATION = 20 * 60 * 1000; // 20 minutes cache for projects
+const DATA_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes cache for submission data
 
 document.addEventListener("DOMContentLoaded", () => {
     loadSettings();
     setupEventListeners();
-    initializeUI();
 });
 
 function setupEventListeners() {
@@ -26,28 +25,133 @@ function setupEventListeners() {
         if (e.key === "Enter") saveSettings();
     });
     
-    // Base URL input enter key
-    document.getElementById("baseUrl").addEventListener("keypress", (e) => {
-        if (e.key === "Enter") saveSettings();
+    // Base URL dropdown setup
+    setupBaseUrlDropdown();
+    
+    // Close modals when clicking outside
+    document.getElementById("settingsModal").addEventListener("click", (e) => {
+        if (e.target === document.getElementById("settingsModal")) {
+            toggleSettings();
+        }
+    });
+    
+    document.getElementById("projectSelector").addEventListener("click", (e) => {
+        if (e.target === document.getElementById("projectSelector")) {
+            hideProjectSelector();
+        }
     });
 }
 
-function initializeUI() {
-    loadSelectedProjects();
+function showSetupMessage() {
+    document.getElementById("tabsContainer").innerHTML = "";
+    document.getElementById("results").innerHTML = `
+        <div class="empty-state">
+            <h4>Welcome to KoBo Monitor</h4>
+            <p>Please open <strong>Settings</strong> and configure:</p>
+            <p> - KoBo Server (Base URL)</p>
+            <p> - API Token</p>
+            <p>After saving, you can select projects to monitor.</p>
+        </div>
+    `;
 }
 
+function loadSettings() {
+    chrome.storage.local.get(["koboToken", "koboBaseUrl"], (result) => {
+        const hasToken = result.koboToken && result.koboToken.trim() !== "";
+        
+        if (hasToken) {
+            document.getElementById("token").value = result.koboToken;
+        }
+
+        if (result.koboBaseUrl) {
+            BASE_URL = result.koboBaseUrl;
+            const displayUrl = result.koboBaseUrl.replace('/api/v2', '');
+            setBaseUrlInput(displayUrl);
+        }
+
+        // If no token → show setup message
+        if (!hasToken) {
+            showSetupMessage();
+            return;
+        }
+
+        // Token exists - load projects and initialize UI
+        loadProjects();
+        loadSelectedProjects();
+    });
+}
+
+// ==================== BASE URL DROPDOWN HANDLING ====================
+
+function setupBaseUrlDropdown() {
+    const select = document.getElementById('baseUrlSelect');
+    const customInput = document.getElementById('baseUrlCustom');
+    
+    select.addEventListener('change', () => {
+        if (select.value === 'custom') {
+            customInput.classList.remove('hidden');
+            customInput.focus();
+        } else {
+            customInput.classList.add('hidden');
+            customInput.value = '';
+        }
+    });
+}
+
+function getBaseUrlFromInput() {
+    const select = document.getElementById('baseUrlSelect');
+    const customInput = document.getElementById('baseUrlCustom');
+    
+    if (select.value === 'custom') {
+        return customInput.value.trim();
+    } else {
+        return select.value;
+    }
+}
+
+function setBaseUrlInput(url) {
+    const select = document.getElementById('baseUrlSelect');
+    const customInput = document.getElementById('baseUrlCustom');
+    
+    // Check if URL matches any of the predefined options
+    const options = Array.from(select.options).map(opt => opt.value);
+    
+    if (options.includes(url)) {
+        select.value = url;
+        customInput.classList.add('hidden');
+        customInput.value = '';
+    } else {
+        select.value = 'custom';
+        customInput.classList.remove('hidden');
+        customInput.value = url;
+    }
+}
+
+// ==================== SETTINGS MANAGEMENT ====================
+
 function toggleSettings() {
-    const panel = document.getElementById("settingsPanel");
-    panel.classList.toggle("hidden");
+    const modal = document.getElementById("settingsModal");
+    modal.classList.toggle("hidden");
+    
+    // Refresh the dropdown values when opening
+    if (!modal.classList.contains("hidden")) {
+        chrome.storage.local.get(["koboBaseUrl"], (result) => {
+            if (result.koboBaseUrl) {
+                // Remove /api/v2 for display
+                const baseUrl = result.koboBaseUrl.replace('/api/v2', '');
+                setBaseUrlInput(baseUrl);
+            }
+        });
+    }
+}
+
+function hideProjectSelector() {
+    document.getElementById("projectSelector").classList.add("hidden");
 }
 
 function showProjectSelector() {
     document.getElementById("projectSelector").classList.remove("hidden");
     loadProjects(false);
-}
-
-function hideProjectSelector() {
-    document.getElementById("projectSelector").classList.add("hidden");
 }
 
 function showSpinner(elementId) {
@@ -72,9 +176,9 @@ function showStatus(message, isSuccess = true) {
 function logout() {
     chrome.storage.local.remove(["koboToken", "koboBaseUrl", "projectsCache", "selectedProjectsData", "projectDataCache"], () => {
         document.getElementById("token").value = "";
-        document.getElementById("baseUrl").value = "https://kobo.impact-initiatives.org";
+        setBaseUrlInput("https://kobo.impact-initiatives.org");
         document.getElementById("tabsContainer").innerHTML = "";
-        document.getElementById("results").innerHTML = "";
+        showSetupMessage();
         BASE_URL = "https://kobo.impact-initiatives.org/api/v2";
         showStatus("Logged out successfully");
         toggleSettings();
@@ -83,27 +187,27 @@ function logout() {
 
 function saveSettings() {
     const token = document.getElementById("token").value.trim();
-    let baseUrl = document.getElementById("baseUrl").value.trim();
+    let baseUrl = getBaseUrlFromInput();
     
     if (!token) {
         showStatus("Please enter a token", false);
         return;
     }
     
+    if (!baseUrl) {
+        showStatus("Please enter a base URL", false);
+        return;
+    }
+    
     // Clean up base URL
-    if (baseUrl) {
-        // Remove trailing slash if present
-        baseUrl = baseUrl.replace(/\/$/, '');
-        // Ensure it has https:// or http://
-        if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
-            baseUrl = 'https://' + baseUrl;
-        }
-        // Add /api/v2 if not present
-        if (!baseUrl.endsWith('/api/v2')) {
-            baseUrl = baseUrl + '/api/v2';
-        }
-    } else {
-        baseUrl = "https://kobo.impact-initiatives.org/api/v2";
+    baseUrl = baseUrl.replace(/\/$/, '');
+    if (!baseUrl.startsWith('http://') && !baseUrl.startsWith('https://')) {
+        baseUrl = 'https://' + baseUrl;
+    }
+    
+    // Add /api/v2 if not present
+    if (!baseUrl.endsWith('/api/v2')) {
+        baseUrl = baseUrl + '/api/v2';
     }
     
     chrome.storage.local.set({ 
@@ -112,23 +216,17 @@ function saveSettings() {
     }, () => {
         BASE_URL = baseUrl;
         showStatus("Settings saved successfully");
+        
+        // Close settings modal
+        toggleSettings();
+        
+        // Clear any existing content
+        document.getElementById("tabsContainer").innerHTML = "";
+        document.getElementById("results").innerHTML = "";
+        
+        // Load projects and initialize UI
         loadProjects(true);
-        setTimeout(() => toggleSettings(), 1500);
-    });
-}
-
-function loadSettings() {
-    chrome.storage.local.get(["koboToken", "koboBaseUrl"], (result) => {
-        if (result.koboToken) {
-            document.getElementById("token").value = result.koboToken;
-        }
-        if (result.koboBaseUrl) {
-            document.getElementById("baseUrl").value = result.koboBaseUrl.replace('/api/v2', '');
-            BASE_URL = result.koboBaseUrl;
-        } else {
-            document.getElementById("baseUrl").value = "https://kobo.impact-initiatives.org";
-        }
-        loadProjects();
+        loadSelectedProjects();
     });
 }
 
@@ -805,7 +903,17 @@ function displayProjectList(projects) {
     chrome.storage.local.get(["selectedProjectsData"], (result) => {
         const selectedUids = (result.selectedProjectsData || []).map(p => p.uid);
         
-        projects.forEach(project => {
+        // Filter projects without valid names
+        const filteredProjects = projects.filter(project => 
+            project.name && project.name.trim() !== ""
+        );
+        
+        if (filteredProjects.length === 0) {
+            select.innerHTML = '<option disabled>No valid projects found</option>';
+            return;
+        }
+        
+        filteredProjects.forEach(project => {
             const option = document.createElement("option");
             option.value = project.uid;
             option.textContent = `${project.name} (Created: ${new Date(project.date_created).toLocaleDateString()})`;

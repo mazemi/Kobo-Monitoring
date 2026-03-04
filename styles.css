@@ -98,6 +98,30 @@ body {
     background: #d0d0d0;
 }
 
+/* Setup / Empty State */
+.empty-state {
+    max-width: 420px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    text-align: left;            
+    line-height: 1.5;
+}
+
+.empty-state h4 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    text-align: center;          
+}
+
+.empty-state p {
+    margin: 6px 0;
+    font-size: 13px;
+    text-align: left; 
+}
+
 .refresh-project-btn {
     background: #555555;
     border: none;
@@ -154,37 +178,79 @@ body {
     transform: scale(1.1);
 }
 
-/* ===== SETTINGS PANEL ===== */
-.settings-panel {
-    background: white;
-    border-bottom: 1px solid #ddd;
-    padding: 15px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    flex-shrink: 0;
+/* ===== MODAL STYLES (Shared between Settings and Project Selector) ===== */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
 }
 
-.settings-panel.hidden {
+.modal.hidden {
     display: none;
 }
 
-.settings-header {
+.modal-content {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    width: 90%;
+    max-width: 400px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    background: #f5f5f5;
+    padding: 12px 15px;
+    border-radius: 8px 8px 0 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 15px;
-    font-weight: 500;
+    border-bottom: 1px solid #ddd;
+    flex-shrink: 0;
 }
 
-.settings-content {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+.modal-header span {
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.modal-body {
+    padding: 20px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+/* Settings Modal Specific */
+.settings-modal .modal-content {
+    max-width: 380px;
 }
 
 .settings-group {
     display: flex;
     flex-direction: column;
     gap: 4px;
+    margin-bottom: 15px;
 }
 
 .settings-group label {
@@ -206,10 +272,48 @@ body {
     box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
 }
 
+/* Dropdown + Input combination */
+.dropdown-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dropdown-select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+    background: white;
+    cursor: pointer;
+}
+
+.dropdown-select:focus {
+    outline: none;
+    border-color: #4CAF50;
+}
+
+.dropdown-input {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+}
+
+.dropdown-input:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.1);
+}
+
+.dropdown-input.hidden {
+    display: none;
+}
+
 .settings-actions {
     display: flex;
     gap: 8px;
-    margin-top: 4px;
+    margin-top: 20px;
 }
 
 .status-message {
@@ -217,6 +321,7 @@ body {
     padding: 8px;
     border-radius: 4px;
     text-align: center;
+    margin-top: 10px;
 }
 
 .status-message.success {
@@ -227,6 +332,37 @@ body {
 .status-message.error {
     background: #ffebee;
     color: #f44336;
+}
+
+/* Project Selector Modal Specific */
+.selector-modal .modal-content {
+    max-width: 380px;
+}
+
+.refresh-section {
+    margin-bottom: 10px;
+}
+
+#projectSelect {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    min-height: 150px;
+    max-height: 300px;
+    font-size: 12px;
+}
+
+#projectSelect option {
+    padding: 6px;
+    white-space: normal;
+    word-wrap: break-word;
+}
+
+.selector-actions {
+    margin-top: 15px;
+    text-align: right;
+    flex-shrink: 0;
 }
 
 /* ===== MAIN CONTENT ===== */
@@ -341,74 +477,6 @@ body {
     font-size: 18px;
     font-weight: 500;
     color: #4CAF50;
-}
-
-/* ===== PROJECT SELECTOR MODAL ===== */
-.selector-modal {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-    width: 90%;
-    max-width: 380px;
-    z-index: 1000;
-    max-height: 80vh;
-    display: flex;
-    flex-direction: column;
-}
-
-.selector-modal.hidden {
-    display: none;
-}
-
-.selector-header {
-    background: #f5f5f5;
-    padding: 12px 15px;
-    border-radius: 8px 8px 0 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid #ddd;
-    flex-shrink: 0;
-}
-
-.selector-header span {
-    font-weight: 500;
-}
-
-.selector-content {
-    padding: 15px;
-    overflow-y: auto;
-    flex-grow: 1;
-}
-
-.refresh-section {
-    margin-bottom: 10px;
-}
-
-#projectSelect {
-    width: 100%;
-    padding: 8px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    min-height: 150px;
-    max-height: 300px;
-    font-size: 12px;
-}
-
-#projectSelect option {
-    padding: 6px;
-    white-space: normal;
-    word-wrap: break-word;
-}
-
-.selector-actions {
-    margin-top: 15px;
-    text-align: right;
-    flex-shrink: 0;
 }
 
 /* ===== RESULTS AREA ===== */

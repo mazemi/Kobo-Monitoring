@@ -11,26 +11,36 @@
     <button id="settingsBtn" class="icon-btn" title="Settings">Settings</button>
 </div>
 
-<!-- Settings Panel (hidden by default) -->
-<div id="settingsPanel" class="settings-panel hidden">
-    <div class="settings-header">
-        <span>Settings</span>
-        <button id="closeSettings" class="close-circle" title="Close">&#x2715;</button>
-    </div>
-    <div class="settings-content">
-        <div class="settings-group">
-            <label for="baseUrl">KoBo Base URL</label>
-            <input type="text" id="baseUrl" placeholder="https://kobo.impact-initiatives.org" value="https://kobo.impact-initiatives.org">
+<!-- Settings Modal -->
+<div id="settingsModal" class="modal hidden">
+    <div class="modal-content settings-modal">
+        <div class="modal-header">
+            <span>Settings</span>
+            <button id="closeSettings" class="close-circle" title="Close">&#x2715;</button>
         </div>
-        <div class="settings-group">
-            <label for="token">API Token</label>
-            <input type="password" id="token" placeholder="Paste KoBo API Token" value="">
+        <div class="modal-body">
+            <div class="settings-group">
+                <label for="baseUrl">KoBo Base URL</label>
+                <div class="dropdown-input-group">
+                    <select id="baseUrlSelect" class="dropdown-select">
+                        <option value="https://kobo.impact-initiatives.org">https://kobo.impact-initiatives.org</option>
+                        <option value="https://kf.kobotoolbox.org">https://kf.kobotoolbox.org</option>
+                        <option value="https://eu.kobotoolbox.org">https://eu.kobotoolbox.org</option>
+                        <option value="custom">Custom URL...</option>
+                    </select>
+                    <input type="text" id="baseUrlCustom" class="dropdown-input hidden" placeholder="Enter custom URL">
+                </div>
+            </div>
+            <div class="settings-group">
+                <label for="token">API Token</label>
+                <input type="password" id="token" placeholder="Paste KoBo API Token" value="">
+            </div>
+            <div class="settings-actions">
+                <button id="saveToken" class="primary-btn">Save Settings</button>
+                <button id="logoutBtn" class="secondary-btn">Log Out</button>
+            </div>
+            <span id="tokenStatus" class="status-message"></span>
         </div>
-        <div class="settings-actions">
-            <button id="saveToken" class="primary-btn">Save Settings</button>
-            <button id="logoutBtn" class="secondary-btn">Log Out</button>
-        </div>
-        <span id="tokenStatus" class="status-message"></span>
     </div>
 </div>
 
@@ -39,20 +49,22 @@
     <!-- Tabs for Projects (now includes + tab) -->
     <div id="tabsContainer" class="tabs-container"></div>
 
-    <!-- Project Selector Modal (hidden by default) -->
-    <div id="projectSelector" class="selector-modal hidden">
-        <div class="selector-header">
-            <span>Select Projects to Monitor</span>
-            <button id="closeSelector" class="close-circle" title="Close">&#x2715;</button>
-        </div>
-        <div class="selector-content">
-            <div class="refresh-section">
-                <button id="refreshProjects" class="small-btn">Refresh List</button>
+    <!-- Project Selector Modal -->
+    <div id="projectSelector" class="modal hidden">
+        <div class="modal-content selector-modal">
+            <div class="modal-header">
+                <span>Select Projects to Monitor</span>
+                <button id="closeSelector" class="close-circle" title="Close">&#x2715;</button>
             </div>
-            <div class="loading-spinner" id="projectSpinner" style="display: none;"></div>
-            <select id="projectSelect" multiple></select>
-            <div class="selector-actions">
-                <button id="saveProjectSelection" class="primary-btn">Add Selected Projects</button>
+            <div class="modal-body">
+                <div class="refresh-section">
+                    <button id="refreshProjects" class="small-btn">Refresh List</button>
+                </div>
+                <div class="loading-spinner" id="projectSpinner" style="display: none;"></div>
+                <select id="projectSelect" multiple></select>
+                <div class="selector-actions">
+                    <button id="saveProjectSelection" class="primary-btn">Add Selected Projects</button>
+                </div>
             </div>
         </div>
     </div>
@@ -64,7 +76,7 @@
 <!-- Author Footer -->
 <div class="author-footer">
     <div class="author-info">
-        <span class="author-name">REACH Initiatives (Afghaniatan mission)</span>
+        <span class="author-name">REACH Initiatives (Afghanistan mission)</span>
         <span class="author-email">mohammad.azemi@reach-initiative.org</span>
     </div>
     <div class="app-version">v1.3</div>
