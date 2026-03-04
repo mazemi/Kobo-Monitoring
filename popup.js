@@ -635,7 +635,7 @@ function createProjectSection(project, data, fromCache = false) {
         projectSection.innerHTML = `
             <div class="project-section">
                 <div class="project-header">
-                    <h4>${escapeHtml(project.name)} <span class="project-total">Total: 0</span></h4>
+                    <h4>${escapeHtml(project.name)} <span class="project-total">Total submissions: 0</span></h4>
                     <button class="refresh-project-btn" title="Refresh data" data-uid="${project.uid}">Refresh</button>
                 </div>
                 <p class="no-data">No submissions found for this project</p>
@@ -674,7 +674,7 @@ function createProjectSection(project, data, fromCache = false) {
         
         let html = `<div class="project-section">
             <div class="project-header">
-                <h4>${escapeHtml(project.name)} <span class="project-total">Total: ${totalSubmissions}</span></h4>
+                <h4>${escapeHtml(project.name)} <span class="project-total">Total submissions: ${totalSubmissions}</span></h4>
                 <button class="refresh-project-btn" title="Refresh data" data-uid="${project.uid}">Refresh</button>
             </div>`;
         
@@ -740,10 +740,10 @@ function displayProjectError(project) {
     projectSection.innerHTML = `
         <div class="project-section">
             <div class="project-header">
-                <h4>${escapeHtml(project.name)} <span class="project-total">Error</span></h4>
+                <h4>${escapeHtml(project.name)} <span class="project-total">No Data</span></h4>
                 <button class="refresh-project-btn" title="Retry" data-uid="${project.uid}">Retry</button>
             </div>
-            <p class="error">Error loading data for this project</p>
+            <p class="error">Oops! Error loading data for this project</p>
         </div>`;
     
     const refreshBtn = projectSection.querySelector('.refresh-project-btn');
