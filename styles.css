@@ -55,10 +55,10 @@ body {
     background: #4CAF50;
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: 6px 12px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 500;
     min-width: 80px;
 }
@@ -68,34 +68,34 @@ body {
 }
 
 .secondary-btn {
-    background: #f44336;
+    background: #9f9f9f;
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: 6px 12px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 11px;
     font-weight: 500;
     min-width: 80px;
 }
 
 .secondary-btn:hover {
-    background: #d32f2f;
+    background: #8d8c8c;
 }
 
 .small-btn {
-    background: #e0e0e0;
+    background: #404040;
     border: none;
     padding: 6px 12px;
     border-radius: 4px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 10px;
     font-weight: 500;
-    color: #333;
+    color: #dedcdc;
 }
 
 .small-btn:hover {
-    background: #d0d0d0;
+    background: #343333;
 }
 
 /* Setup / Empty State */
@@ -169,8 +169,8 @@ body {
 }
 
 .close-circle:hover {
-    background: rgba(244, 67, 54, 0.1);
-    color: #f44336;
+    background: #dbd9d9;
+    color: #656565;
     opacity: 1;
 }
 
@@ -334,7 +334,7 @@ body {
 
 .status-message.error {
     background: #ffebee;
-    color: #f44336;
+    color: #f2594e;
 }
 
 /* Project Selector Modal Specific */
