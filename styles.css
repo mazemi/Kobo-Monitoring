@@ -101,7 +101,7 @@ body {
 /* Setup / Empty State */
 .empty-state {
     max-width: 420px;
-    margin-top: 20px;  /* Adjust this value as needed */
+    margin-top: 20px;
     margin-right: auto;
     margin-bottom: 40px;
     margin-left: auto;
@@ -131,14 +131,14 @@ body {
     color: #fffbfb;
     cursor: pointer;
     font-size: 10px;
-    padding: 4px 10px;
+    padding: 4px 7px;
     border-radius: 4px;
     transition: all 0.2s;
     font-weight: 500;
 }
 
 .refresh-project-btn:hover {
-    background: #d0d0d0;
+    background: #747373;
 }
 
 .refresh-project-btn:disabled {
@@ -335,11 +335,6 @@ body {
 .status-message.error {
     background: #ffebee;
     color: #f2594e;
-}
-
-/* Project Selector Modal Specific */
-.selector-modal .modal-content {
-    max-width: 380px;
 }
 
 .refresh-section {
@@ -783,4 +778,150 @@ tr:nth-child(even) {
     font-size: 10px;
     color: #bdc3c7;
     font-family: monospace;
+}
+
+/* ===== PROJECT SELECTOR MODAL - UPDATED ===== */
+.selector-modal .modal-content {
+    max-width: 550px;
+    width: 550px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.selector-modal .modal-body {
+    padding: 20px;
+    overflow-y: auto;  /* This makes the entire modal body scrollable */
+    flex-grow: 1;
+}
+
+/* Simple refresh section */
+.refresh-section {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+    flex-shrink: 0;
+}
+
+.refresh-btn {
+    background: none;
+    border: 1px solid #e0e0e0;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-size: 11px;
+    cursor: pointer;
+    color: #555;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s;
+}
+
+.refresh-btn:hover {
+    background: #f5f5f5;
+    border-color: #999;
+}
+
+.refresh-btn .refresh-icon {
+    font-size: 12px;
+}
+
+/* Projects container - no scroll, just natural flow */
+.projects-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 10px;
+}
+
+/* Project Item */
+.project-item {
+    display: flex;
+    align-items: flex-start;
+    padding: 6px 4px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+    cursor: pointer;
+}
+
+.project-item:hover {
+    background-color: #f9f9f9;
+}
+
+.project-item:last-child {
+    border-bottom: none;
+}
+
+/* Checkbox styling */
+.project-checkbox {
+    margin-right: 10px;
+    margin-top: 3px;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #4CAF50;
+    flex-shrink: 0;
+}
+
+/* Project info container */
+.project-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.project-info .project-name {
+    font-weight: 500;
+    font-size: 11px;
+    padding-top: 4px;
+    color: #333;
+    line-height: 1.2;
+    word-break: break-word;
+}
+
+.project-info .project-meta {
+    display: flex;
+    gap: 10px;
+    font-size: 10px;
+    color: #666;
+}
+
+.project-info .project-created {
+    background: #f5f5f5;
+    padding: 2px 8px;
+    border-radius: 12px;
+    display: inline-block;
+    color: #555;
+    font-size: 10px;
+    font-weight: 400;
+}
+
+/* Loading and empty states */
+.projects-loading {
+    padding: 40px 20px;
+    text-align: center;
+    color: #666;
+}
+
+.projects-empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: #999;
+    font-size: 13px;
+    background: #fafafa;
+    border-radius: 6px;
+    border: 1px dashed #ddd;
+    margin: 10px 0;
+}
+
+/* Remove any fixed height or max-height from projects list */
+.projects-list {
+    /* No height restrictions - let it flow naturally */
+    margin: 0;
+}
+
+/* No separate scrollbar for projects list */
+.projects-list::-webkit-scrollbar {
+    display: none;
 }

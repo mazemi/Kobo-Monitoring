@@ -151,7 +151,7 @@ function hideProjectSelector() {
 
 function showProjectSelector() {
     document.getElementById("projectSelector").classList.remove("hidden");
-    loadProjects(false);
+    loadProjectsWithCheckboxes(false);
 }
 
 function showSpinner(elementId) {
@@ -230,22 +230,218 @@ function saveSettings() {
     });
 }
 
-// ==================== PROJECT SELECTION MANAGEMENT ====================
+// ==================== PROJECT SELECTOR WITH AUTO-SAVE CHECKBOXES ====================
 
-function saveProjectSelection() {
-    const select = document.getElementById("projectSelect");
-    const selectedOptions = Array.from(select.selectedOptions);
+function loadProjects(forceRefresh = false) {
+    // Delegate to the new checkbox version
+    loadProjectsWithCheckboxes(forceRefresh);
+}
+
+function loadProjectsWithCheckboxes(forceRefresh = false) {
+    const modalBody = document.querySelector("#projectSelector .modal-body");
     
-    if (selectedOptions.length === 0) {
-        alert("Please select at least one project");
-        return;
+    if (!forceRefresh) {
+        getCachedProjects().then(cached => {
+            if (cached) {
+                displayProjectListWithCheckboxes(cached);
+                return;
+            }
+            fetchProjectsFromApi();
+        });
+    } else {
+        fetchProjectsFromApi();
     }
     
-    const selectedProjects = selectedOptions.map(o => ({
-        uid: o.value,
-        name: o.textContent.split(' (Created:')[0],
-        created: o.dataset.created
-    }));
+    function fetchProjectsFromApi() {
+        // Show loading state
+        modalBody.innerHTML = `
+            <div class="refresh-section">
+                <button id="refreshProjects" class="refresh-project-btn">
+                    Refresh List
+                </button>
+            </div>
+            <div class="projects-loading">
+                <div class="loading-spinner"></div>
+                <p style="margin-top: 10px; color: #666;">Loading projects...</p>
+            </div>
+        `;
+        
+        // Add refresh button listener
+        document.getElementById("refreshProjects").addEventListener("click", () => {
+            loadProjectsWithCheckboxes(true);
+        });
+        
+        apiFetch("/assets/")
+            .then(data => {
+                if (!data.results || data.results.length === 0) {
+                    showNoProjectsMessage();
+                    return;
+                }
+                
+                // Filter out projects without names (same as original code)
+                const validProjects = data.results.filter(project => 
+                    project.name && project.name.trim() !== ""
+                );
+                
+                if (validProjects.length === 0) {
+                    showNoProjectsMessage();
+                    return;
+                }
+                
+                cacheProjects(validProjects);
+                displayProjectListWithCheckboxes(validProjects);
+            })
+            .catch(error => {
+                console.error("Error loading projects:", error);
+                modalBody.innerHTML = `
+                    <div class="refresh-section">
+                        <button id="refreshProjects" class="refresh-project-btn">
+                            Try Again
+                        </button>
+                    </div>
+                    <div class="projects-empty">
+                        <p style="color: #f44336;">Error loading projects</p>
+                        <p style="font-size: 11px; margin-top: 5px;">Check your token and base URL</p>
+                    </div>
+                `;
+                document.getElementById("refreshProjects").addEventListener("click", () => {
+                    loadProjectsWithCheckboxes(true);
+                });
+            });
+    }
+}
+
+function showNoProjectsMessage() {
+    const modalBody = document.querySelector("#projectSelector .modal-body");
+    modalBody.innerHTML = `
+        <div class="refresh-section">
+            <button id="refreshProjects" class="refresh-project-btn">
+                Refresh List
+            </button>
+        </div>
+        <div class="projects-empty">
+            <p>No projects found</p>
+            <span style="font-size: 11px; margin-top: 5px;">Create a project in KoBo first</span>
+        </div>
+    `;
+    document.getElementById("refreshProjects").addEventListener("click", () => {
+        loadProjectsWithCheckboxes(true);
+    });
+}
+
+function displayProjectListWithCheckboxes(projects) {
+    const modalBody = document.querySelector("#projectSelector .modal-body");
+    
+    chrome.storage.local.get(["selectedProjectsData"], (result) => {
+        const selectedUids = new Set((result.selectedProjectsData || []).map(p => p.uid));
+        
+        // Display projects in the same order as they came from the API (original behavior)
+        const projectsToDisplay = [...projects];
+        
+        let html = `
+            <div class="refresh-section">
+                <button id="refreshProjects" class="refresh-project-btn">
+                    Refresh List
+                </button>
+            </div>
+            
+            <div class="projects-list" id="projectsList">
+        `;
+        
+        // Add all projects in original API order
+        projectsToDisplay.forEach(project => {
+            const isSelected = selectedUids.has(project.uid);
+            const createdDate = new Date(project.date_created).toLocaleDateString();
+            
+            html += `
+                <div class="project-item" data-uid="${project.uid}">
+                    <input type="checkbox" class="project-checkbox" 
+                           value="${project.uid}" ${isSelected ? 'checked' : ''}>
+                    <div class="project-info">
+                        <span class="project-name">${escapeHtml(project.name)} 
+                            <span class="project-created">Created: ${createdDate}</span> 
+                        </span>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += `
+            </div>
+        `;
+        
+        modalBody.innerHTML = html;
+        
+        // Setup event listeners
+        setupProjectSelectorEvents();
+    });
+}
+
+function setupProjectSelectorEvents() {
+    // Refresh button
+    document.getElementById("refreshProjects").addEventListener("click", () => {
+        loadProjectsWithCheckboxes(true);
+    });
+    
+    // Make entire project item clickable to toggle checkbox
+    document.querySelectorAll('.project-item').forEach(item => {
+        item.addEventListener('click', (e) => {
+            // Don't toggle if clicking directly on checkbox (prevents double toggle)
+            if (e.target.type !== 'checkbox') {
+                const checkbox = item.querySelector('.project-checkbox');
+                checkbox.checked = !checkbox.checked;
+                // Auto-save when toggled
+                saveProjectSelectionFromCheckboxes();
+            }
+        });
+    });
+    
+    // Auto-save when checkbox is directly clicked
+    document.querySelectorAll('.project-checkbox').forEach(cb => {
+        cb.addEventListener('change', () => {
+            saveProjectSelectionFromCheckboxes();
+        });
+    });
+}
+
+function saveProjectSelectionFromCheckboxes() {
+    const selectedCheckboxes = document.querySelectorAll('.project-checkbox:checked');
+    
+    // Get all projects from the displayed list
+    const projectItems = document.querySelectorAll('.project-item');
+    const projects = [];
+    
+    projectItems.forEach(item => {
+        const checkbox = item.querySelector('.project-checkbox');
+        const projectName = item.querySelector('.project-name').textContent;
+        const uid = checkbox.value;
+        
+        // Extract creation date from the meta span
+        const metaSpan = item.querySelector('.project-created');
+        const createdText = metaSpan.textContent.replace('Created: ', '');
+        
+        projects.push({
+            uid: uid,
+            name: projectName,
+            created: createdText
+        });
+    });
+    
+    // Create a map for quick project lookup
+    const projectsMap = {};
+    projects.forEach(p => projectsMap[p.uid] = p);
+    
+    const selectedProjects = [];
+    selectedCheckboxes.forEach(cb => {
+        const project = projectsMap[cb.value];
+        if (project) {
+            selectedProjects.push({
+                uid: project.uid,
+                name: project.name,
+                created: project.created
+            });
+        }
+    });
     
     chrome.storage.local.get(["selectedProjectsData"], (result) => {
         const existingProjects = result.selectedProjectsData || [];
@@ -258,23 +454,31 @@ function saveProjectSelection() {
             }
         });
         
-        chrome.storage.local.set({ selectedProjectsData: allProjects }, () => {
-            hideProjectSelector();
-            
-            // Clear results div completely
-            document.getElementById("results").innerHTML = '';
-            
-            // Get the last added project UID to make it active
-            const lastAddedUid = selectedProjects[selectedProjects.length - 1].uid;
-            
-            // Update tabs with new projects and set the last added as active
-            createProjectTabs(allProjects, lastAddedUid);
-            
-            // Load data for all projects
-            loadDataForSelectedProjects();
+        // Also remove projects that were unselected
+        const finalProjects = allProjects.filter(p => 
+            selectedProjects.some(sp => sp.uid === p.uid)
+        );
+        
+        chrome.storage.local.set({ selectedProjectsData: finalProjects }, () => {
+            // Update tabs with new projects
+            if (finalProjects.length > 0) {
+                createProjectTabs(finalProjects, finalProjects[0].uid);
+                loadDataForSelectedProjects();
+            } else {
+                createProjectTabs([]);
+                document.getElementById("results").innerHTML = '<div class="empty-state">Click + to add projects to monitor</div>';
+            }
         });
     });
 }
+
+// Keep the original saveProjectSelection for backward compatibility
+function saveProjectSelection() {
+    // This function is kept for backward compatibility
+    console.warn('saveProjectSelection is deprecated, using auto-save checkboxes instead');
+}
+
+// ==================== PROJECT SELECTION MANAGEMENT ====================
 
 function loadSelectedProjects() {
     chrome.storage.local.get(["selectedProjectsData"], (result) => {
@@ -831,6 +1035,33 @@ async function getCachedProjectData(projectUid) {
     });
 }
 
+function cacheProjects(projects) {
+    const cacheData = {
+        timestamp: Date.now(),
+        projects: projects
+    };
+    chrome.storage.local.set({ projectsCache: cacheData });
+}
+
+async function getCachedProjects() {
+    return new Promise((resolve) => {
+        chrome.storage.local.get(["projectsCache"], (result) => {
+            if (result.projectsCache) {
+                const cache = result.projectsCache;
+                const now = Date.now();
+                
+                if (now - cache.timestamp < CACHE_DURATION) {
+                    resolve(cache.projects);
+                } else {
+                    resolve(null);
+                }
+            } else {
+                resolve(null);
+            }
+        });
+    });
+}
+
 // ==================== API CALLS ====================
 
 async function apiFetch(endpoint) {
@@ -858,98 +1089,6 @@ async function apiFetch(endpoint) {
                 resolve(data);
             } catch (error) {
                 reject(error);
-            }
-        });
-    });
-}
-
-async function loadProjects(forceRefresh = false) {
-    const select = document.getElementById("projectSelect");
-    
-    if (!forceRefresh) {
-        const cached = await getCachedProjects();
-        if (cached) {
-            displayProjectList(cached);
-            return;
-        }
-    }
-    
-    select.innerHTML = "";
-    showSpinner("projectSpinner");
-    
-    try {
-        const data = await apiFetch("/assets/");
-        
-        if (!data.results || data.results.length === 0) {
-            select.innerHTML = '<option disabled>No projects found</option>';
-            return;
-        }
-
-        cacheProjects(data.results);
-        displayProjectList(data.results);
-        
-    } catch (error) {
-        console.error("Error loading projects:", error);
-        select.innerHTML = '<option disabled>Error loading projects. Check token and URL.</option>';
-    } finally {
-        hideSpinner("projectSpinner");
-    }
-}
-
-function displayProjectList(projects) {
-    const select = document.getElementById("projectSelect");
-    select.innerHTML = "";
-    
-    chrome.storage.local.get(["selectedProjectsData"], (result) => {
-        const selectedUids = (result.selectedProjectsData || []).map(p => p.uid);
-        
-        // Filter projects without valid names
-        const filteredProjects = projects.filter(project => 
-            project.name && project.name.trim() !== ""
-        );
-        
-        if (filteredProjects.length === 0) {
-            select.innerHTML = '<option disabled>No valid projects found</option>';
-            return;
-        }
-        
-        filteredProjects.forEach(project => {
-            const option = document.createElement("option");
-            option.value = project.uid;
-            option.textContent = `${project.name} (Created: ${new Date(project.date_created).toLocaleDateString()})`;
-            option.dataset.created = project.date_created;
-            
-            if (selectedUids.includes(project.uid)) {
-                option.selected = true;
-            }
-            
-            select.appendChild(option);
-        });
-    });
-}
-
-function cacheProjects(projects) {
-    const cacheData = {
-        timestamp: Date.now(),
-        projects: projects
-    };
-    chrome.storage.local.set({ projectsCache: cacheData });
-}
-
-async function getCachedProjects() {
-    return new Promise((resolve) => {
-        chrome.storage.local.get(["projectsCache"], (result) => {
-            if (result.projectsCache) {
-                const cache = result.projectsCache;
-                const now = Date.now();
-                
-                if (now - cache.timestamp < CACHE_DURATION) {
-                    resolve(cache.projects);
-                } else {
-                    resolve(null);
-                }
-            } else {
-                resolve(null);
             }
         });
     });
