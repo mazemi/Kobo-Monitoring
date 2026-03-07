@@ -5,7 +5,7 @@ Track daily submissions, view the last 7 days submissions.
 
 ---
 
-<img src="https://github.com/mazemi/assets/blob/main/kobomonitoring.png" alt="KoBo Submission Monitor Interface" width="80%">
+<img src="https://github.com/mazemi/assets/blob/main/kobomonitoring.png" alt="KoBo Submission Monitor Interface" width="70%">
 
 ## Features
 
