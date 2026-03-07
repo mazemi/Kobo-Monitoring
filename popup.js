@@ -544,7 +544,8 @@ function createProjectTabs(projects, activeUid = null) {
         // Project name with tooltip
         const tabName = document.createElement("span");
         tabName.className = "tab-name";
-        tabName.textContent = project.name;
+        const cleanProjectName = (project.name || '').split(/Created/i)[0].trim();
+        tabName.textContent = cleanProjectName;
         tabName.title = project.name;
         
         // Remove button (X)
