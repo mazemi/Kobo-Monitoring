@@ -7,7 +7,7 @@ Track daily submissions, view the last 7 days submissions.
 
 <img src="https://github.com/mazemi/assets/blob/main/kobomonitoring.png" alt="KoBo Submission Monitor Interface" width="80%">
 
-## ✨ Features
+## Features
 
 - **Multi-Project Monitoring**  
   Track multiple KoBo projects at the same time using tabs.
@@ -19,7 +19,7 @@ Track daily submissions, view the last 7 days submissions.
   View new submissions per day with a running total.
 ---
 
-## 🚀 Manual Installation (Developer Mode)
+## Manual Installation (Developer Mode)
 
 1. Download or clone this repository.
 2. Open Chrome and go to:  
@@ -30,7 +30,7 @@ Track daily submissions, view the last 7 days submissions.
 
 ---
 
-## 🔑 Setup Instructions
+## Setup Instructions
 
 ### 1️⃣ Get Your KoBo API Token
 
