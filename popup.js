@@ -818,15 +818,19 @@ async function refreshProject(uid, event) {
 function createProjectSection(project, data, fromCache = false) {
     const resultsDiv = document.getElementById("results");
     const submissions = data.results || data;
-    
+
+    // Clean project name (remove "Created..." and anything after it)
+    const cleanProjectName = (project.name || '').split(/Created/i)[0].trim();
+    const safeProjectName = escapeHtml(cleanProjectName);
+
     // Remove loading container if it exists (when first project loads)
     const loadingContainer = document.querySelector('.loading-container');
     if (loadingContainer) {
         loadingContainer.remove();
     }
-    
+
     let projectSection = document.getElementById(`project-${project.uid}`);
-    
+
     if (!projectSection) {
         projectSection = document.createElement("div");
         projectSection.id = `project-${project.uid}`;
@@ -834,79 +838,86 @@ function createProjectSection(project, data, fromCache = false) {
         projectSection.style.display = 'none';
         resultsDiv.appendChild(projectSection);
     }
-    
+
     if (submissions.length === 0) {
         projectSection.innerHTML = `
             <div class="project-section">
                 <div class="project-header">
-                    <h4>${escapeHtml(project.name)} <span class="project-total">Total submissions: 0</span></h4>
+                    <h4>${safeProjectName} <span class="project-total"> (Total submissions: 0)</span></h4>
                     <button class="refresh-project-btn" title="Refresh data" data-uid="${project.uid}">Refresh</button>
                 </div>
                 <p class="no-data">No submissions found for this project</p>
             </div>`;
     } else {
+
         // Sort submissions by date (newest first)
-        const sortedSubmissions = [...submissions].sort((a, b) => 
+        const sortedSubmissions = [...submissions].sort((a, b) =>
             new Date(b._submission_time) - new Date(a._submission_time)
         );
-        
-        // Get the most recent submission date
+
+        // Latest submission date
         const latestSubmissionDate = new Date(sortedSubmissions[0]._submission_time);
+
         const sevenDaysBeforeLatest = new Date(latestSubmissionDate);
         sevenDaysBeforeLatest.setDate(latestSubmissionDate.getDate() - 7);
-        
-        // Count submissions before the 7-day window
+
+        // Submissions before the 7-day window
         const olderSubmissions = submissions.filter(sub => {
             const d = new Date(sub._submission_time);
             return d < sevenDaysBeforeLatest;
         });
-        
-        // Submissions in the last 7 days from latest submission
+
+        // Submissions in the last 7 days
         const recentSubmissions = submissions.filter(sub => {
             const d = new Date(sub._submission_time);
             return d >= sevenDaysBeforeLatest && d <= latestSubmissionDate;
         });
-        
+
         const totalSubmissions = submissions.length;
-        
+
         // Group recent submissions by date
         const grouped = {};
         recentSubmissions.forEach(sub => {
             const date = sub._submission_time.split("T")[0];
             grouped[date] = (grouped[date] || 0) + 1;
         });
-        
-        let html = `<div class="project-section">
-            <div class="project-header">
-                <h4>${escapeHtml(project.name)} <span class="project-total">Total submissions: ${totalSubmissions}</span></h4>
-                <button class="refresh-project-btn" title="Refresh data" data-uid="${project.uid}">Refresh</button>
-            </div>`;
-        
+
+        let html = `
+            <div class="project-section">
+                <div class="project-header">
+                    <h4>${safeProjectName} <span class="project-total"> (Total submissions: ${totalSubmissions})</span></h4>
+                    <button class="refresh-project-btn" title="Refresh data" data-uid="${project.uid}">Refresh</button>
+                </div>`;
+
         if (fromCache) {
             html += `<p class="cache-indicator">Cached data</p>`;
         }
-        
+
         if (recentSubmissions.length === 0) {
+
             html += `<p class="no-data">No submissions in the last 7 days</p>`;
+
         } else {
-            html += `<table>
-                <tr>
-                    <th>Date</th>
-                    <th>New</th>
-                    <th>Total</th>
-                </tr>`;
-            
-            // Get all dates in the 7-day window and sort ascending
+
+            html += `
+                <table>
+                    <tr>
+                        <th>Date</th>
+                        <th>New</th>
+                        <th>Total</th>
+                    </tr>`;
+
             const dates = Object.keys(grouped).sort();
-            
-            // Calculate running total
+
             let runningTotal = olderSubmissions.length;
-            
+
             dates.forEach(date => {
+
                 runningTotal += grouped[date];
+
                 const dateObj = new Date(date);
                 const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
-                
+
                 html += `
                     <tr>
                         <td>${date} (${dayName})</td>
@@ -914,18 +925,22 @@ function createProjectSection(project, data, fromCache = false) {
                         <td>${runningTotal}</td>
                     </tr>`;
             });
-            
-            html += "</table>";
+
+            html += `</table>`;
         }
-        
-        html += "</div>";
+
+        html += `</div>`;
+
         projectSection.innerHTML = html;
     }
-    
+
     // Add refresh button event listener
     const refreshBtn = projectSection.querySelector('.refresh-project-btn');
+
     if (refreshBtn) {
-        refreshBtn.addEventListener('click', (e) => refreshProject(project.uid, e));
+        refreshBtn.addEventListener('click', (e) =>
+            refreshProject(project.uid, e)
+        );
     }
 }
 
@@ -941,10 +956,12 @@ function displayProjectError(project) {
         resultsDiv.appendChild(projectSection);
     }
     
+    const cleanProjectName = (project.name || '').split(/Created/i)[0].trim();
+
     projectSection.innerHTML = `
         <div class="project-section">
             <div class="project-header">
-                <h4>${escapeHtml(project.name)} <span class="project-total">No Data</span></h4>
+                <h4>${escapeHtml(cleanProjectName)} <span class="project-total"> (No Data)</span></h4>
                 <button class="refresh-project-btn" title="Retry" data-uid="${project.uid}">Retry</button>
             </div>
             <p class="error">Oops! Error loading data for this project</p>

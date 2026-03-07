@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "KoBo Project Monitor",
-  "version": "1.3",
+  "version": "1.4",
   "description": "Monitor KoBo submissions last seven days",
   "icons": {
     "16": "icons/icon16.png",
